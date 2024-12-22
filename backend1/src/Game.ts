@@ -8,6 +8,7 @@ export class Game {
     public player2: WebSocket;
     public board : Chess;
     private startTime: Date;
+    private moveCount = 0;
 
     constructor(player1: WebSocket, player2: WebSocket) {
         this.player1 = player1;
@@ -33,17 +34,19 @@ export class Game {
         to: string;
     }) {    // validate the type of move using zod
             //validation here - is it the player's turn, is the move valid,
-            if(this.board.move.length % 2 ===0 && socket !== this.player1){
+            if(this.moveCount % 2 ===0 && socket !== this.player1){
                     return 
             }
-            if(this.board.move.length % 2 === 1 && socket !== this.player2){
+            if(this.moveCount % 2 === 1 && socket !== this.player2){
                 return
             }
             try{
                 this.board.move(move);
+                // this.moveCount++;
             }
             catch (e) {
-                
+                console.log(e);
+                return;
             }
             //   then update the board -> done by the library chess.js itself (no need)
               // push the move,  check if the game is over, then send the updated board to both players.
@@ -63,18 +66,17 @@ export class Game {
                 }))
                 return;
             }
-            if(this.board.moves.length % 2 === 0){
-                this.player1.emit(JSON.stringify({
+            if(this.moveCount % 2 === 0){
+                this.player2.send(JSON.stringify({
                     type: MOVE,
                     payload: move
                 }))
             } else {
-                this.player1.emit(JSON.stringify({
+                this.player1.send(JSON.stringify({
                     type: MOVE,
                     payload: move
                 }))
             }
-        
+            this.moveCount++;
         }
-
 }
